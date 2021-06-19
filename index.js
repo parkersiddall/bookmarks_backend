@@ -1,4 +1,7 @@
+require('dotenv').config()
+const Bookmark = require('./models/bookmark')
 const express = require('express')
+
 const app = express()
 
 // middleware functions
@@ -14,91 +17,32 @@ const unknownEndpoint = (request, response) => {
   response.status(404).json({ error: 'Unknown endpoint' })
 }
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'TypeError'){
+    return response.status(400).send({ error: 'Expected an object but found null.' })
+  }
+
+  next(error)
+}
+
+// start up app with logging middleware
 app.use(express.json())
 app.use(requestLogger)
 
-// helper functions
-const generateId = () => {
-  const maxId = bookmarks.length > 0
-    ? Math.max(...bookmarks.map(n => n.id))
-    : 0
-  return maxId + 1
-}
-
-// in memory DB for easy testing
-let bookmarks = [
-  {
-    name: 'zBookmark 1',
-    url: 'https://www.bookmark1.com',
-    category: 'Category 1',
-    notes: 'Lorem epsum 1.',
-    id: 1
-  },
-  {
-    name: 'Bookmark 2',
-    url: 'https://www.bookmark2.com',
-    category: 'Category 1',
-    notes: 'Lorem epsum 2.',
-    id: 2
-  },
-  {
-    name: 'aBookmark 3',
-    url: 'https://www.bookmark3.com',
-    category: 'Category 2',
-    notes: 'Lorem epsum 3.',
-    id: 3
-  },
-  {
-    name: 'ABookmark 4',
-    url: 'https://www.bookmark4.com',
-    category: 'Category 2',
-    notes: 'Lorem epsum 4.',
-    id: 4
-  },
-  {
-    name: 'Bookmark 5',
-    url: 'https://www.bookmark5.com',
-    category: 'Category 3',
-    notes: 'Lorem epsum 5.',
-    id: 5
-  },
-  {
-    name: 'Bookmark 6',
-    url: 'https://www.bookmark6.com',
-    category: 'Category 3',
-    notes: 'Lorem epsum 6.',
-    id: 6
-  },
-  {
-    name: 'Bookmark 7',
-    url: 'https://www.bookmark7.com',
-    category: 'Category 4',
-    notes: 'Lorem epsum 7.',
-    id: 7
-  },
-  {
-    name: 'Bookmark 8',
-    url: 'https://www.bookmark8.com',
-    category: 'Category 4',
-    notes: 'Lorem epsum 8.',
-    id: 8
-  },
-  {
-    name: 'Bookmark 9',
-    url: 'https://www.bookmark8.com',
-    category: 'Category 5',
-    notes: 'Lorem epsum 8.',
-    id: 9
-  }
-]
-
+// api routes
 app.get('/', (request, response) => {
   // will return React project
   response.send('<h1>Hello World!</h1>')
 })
 
 app.get('/api/bookmarks', (request, response) => {
-  response.json(bookmarks)
+  Bookmark.find({}).then(bookmarks => {
+    response.json(bookmarks)
+  })
 })
 
 app.post("/api/bookmarks", (request, response) => {
@@ -109,64 +53,65 @@ app.post("/api/bookmarks", (request, response) => {
     })
   }
 
-  const bookmark = {
+  const bookmark = new Bookmark({
     name: body.name,
     url: body.url,
     category: body.category,
     notes: body.notes || null,
-    date: new Date(),
-    id: generateId()
-  }
+    date: new Date()
+  })
 
-  bookmarks = bookmarks.concat(bookmark)
-  response.json(bookmark)
+  bookmark.save().then(savedBookmark => {
+    response.json(savedBookmark)
+  })
 })
 
-app.get('/api/bookmarks/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const bookmark = bookmarks.find(bm => bm.id === id)
-
-  if (bookmark) {
-    response.json(bookmark)
-  } else {
-    response.status(404).json({Error: "No resource with this ID exists"}).end()
-  }
+app.get('/api/bookmarks/:id', (request, response, next) => {
+  Bookmark.findById(request.params.id)
+    .then(bookmark => {
+      if (bookmark){
+        response.json(bookmark)
+      } else {
+        response.status(404).end()
+      }
+  })
+  .catch(error => next(error))
 })
 
-app.delete('/api/bookmarks/:id', (request, response) => {
-  const id = Number(request.params.id)
-  bookmarks = bookmarks.filter(bookmark => bookmark.id !== id)
-  response.status(204).end()
+app.delete('/api/bookmarks/:id', (request, response, next) => {
+  Bookmark.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/bookmarks/:id', (request, response) => {
-
-  // get body and id from request
   const body = request.body
-  const id = Number(request.params.id)
 
-  // pull out bookmark from list
-  const bookmark = bookmarks.find(bm => bm.id === id)
-  bookmarks = bookmarks.filter(bookmark => bookmark.id !== id)
+  // pull out bookmark from MongoDB
+  const bookmark = Bookmark.findById(request.params.id)
 
   // update bookmark
   const updatedBookmark = {
     name: body.name || bookmark.name,
     url: body.url || bookmark.url,
     category: body.category || bookmark.category,
-    notes: body.notes || bookmark.notes,
-    date: bookmark.date,
-    id: id
+    notes: body.notes || bookmark.notes
   }
 
-  // save to list, return updates
-  bookmarks = bookmarks.concat(updatedBookmark)
-  response.json(updatedBookmark)
+  // save and return updates
+  Bookmark.findByIdAndUpdate(request.params.id, updatedBookmark, { new: true })
+    .then(updatedBm => {
+      response.json(updatedBm)
+    })
+    .catch(error => next(error))
 })
 
 app.use(unknownEndpoint)
+app.use(errorHandler)
 
-const PORT = 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
