@@ -13,11 +13,23 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFind
   })
 
 const bookmarkSchema = new mongoose.Schema({
-  name: String,
-  url: String,
-  category: String,
+  name: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  category: {
+    type: String,
+    required: true
+  },
   notes: String,
-  date: Date
+  date: {
+    type: Date,
+    required: true
+  }
 })
 
 bookmarkSchema.set('toJSON', {

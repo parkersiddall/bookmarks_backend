@@ -22,8 +22,10 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'TypeError'){
+  } else if (error.name === 'TypeError') {
     return response.status(400).send({ error: 'Expected an object but found null.' })
+  } else if (error.name === 'ValidationError') {
+    return (response.status(400).send({error: 'Issues validating data. Mandatory fields are likely missing.'}))
   }
 
   next(error)
@@ -44,13 +46,8 @@ app.get('/api/bookmarks', async (request, response) => {
   response.json(bookmarks)
 })
 
-app.post("/api/bookmarks", async (request, response) => {
+app.post("/api/bookmarks", async (request, response, next) => {
   const body = request.body
-  if (!body.name || !body.url || !body.category){
-    return response.status(400).json({
-      error: "Missing fields. Name, url, and category needed."
-    })
-  }
 
   const bookmark = new Bookmark({
     name: body.name,
@@ -60,8 +57,12 @@ app.post("/api/bookmarks", async (request, response) => {
     date: new Date()
   })
 
-  const savedBookmark = await bookmark.save()
-  response.json(savedBookmark)
+  try {
+    const savedBookmark = await bookmark.save()
+    response.json(savedBookmark)
+  } catch (error) {
+    next(error)
+  }
 })
 
 app.get('/api/bookmarks/:id', async (request, response, next) => {
