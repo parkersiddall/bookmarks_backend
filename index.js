@@ -1,40 +1,14 @@
 const Bookmark = require('./models/bookmark')
+const customMiddleware = require('./utils/customMiddleware')
 const config = require('./utils/config')
 const logger = require('./utils/logger')
 const express = require('express')
 
 const app = express()
 
-// middleware functions
-const requestLogger = (request, response, next) => {
-  logger.info('Method:', request.method)
-  logger.info('Path:  ', request.path)
-  logger.info('Body:  ', request.body)
-  logger.info('---')
-  next()
-}
-
-const unknownEndpoint = (request, response) => {
-  response.status(404).json({ error: 'Unknown endpoint' })
-}
-
-const errorHandler = (error, request, response, next) => {
-  logger.error(error.message)
-
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'TypeError') {
-    return response.status(400).send({ error: 'Expected an object but found null.' })
-  } else if (error.name === 'ValidationError') {
-    return (response.status(400).send({error: 'Issues validating data. Mandatory fields are likely missing.'}))
-  }
-
-  next(error)
-}
-
 // start up app with logging middleware
 app.use(express.json())
-app.use(requestLogger)
+app.use(customMiddleware.requestLogger)
 
 // api routes
 app.get('/', (request, response) => {
@@ -69,14 +43,15 @@ app.post("/api/bookmarks", async (request, response, next) => {
 app.get('/api/bookmarks/:id', async (request, response, next) => {
   try {
     const bookmark = await Bookmark.findById(request.params.id)
+
+    if (bookmark) {
+      response.json(bookmark)
+    } else {
+      response.status(404).end()
+    }
+
   } catch (error) {
     next(error)
-  }
-
-  if (bookmark) {
-    response.json(bookmark)
-  } else {
-    response.status(404).end()
   }
 })
 
@@ -95,25 +70,29 @@ app.put('/api/bookmarks/:id', async (request, response) => {
   // pull out bookmark from MongoDB
   const bookmark = await Bookmark.findById(request.params.id)
 
-  // update bookmark
-  const updatedBookmark = {
-    name: body.name || bookmark.name,
-    url: body.url || bookmark.url,
-    category: body.category || bookmark.category,
-    notes: body.notes || bookmark.notes
-  }
+  if (bookmark) {
+      // update bookmark
+      const updatedBookmark = {
+        name: body.name || bookmark.name,
+        url: body.url || bookmark.url,
+        category: body.category || bookmark.category,
+        notes: body.notes || bookmark.notes
+      }
 
-  // save and return updates
-  try {
-    const updatedBm = await Bookmark.findByIdAndUpdate(request.params.id, updatedBookmark, { new: true })
-    response.json(updatedBm)
-  } catch (error) {
-    next(error)
+      // save and return updates
+      try {
+        const updatedBm = await Bookmark.findByIdAndUpdate(request.params.id, updatedBookmark, { new: true })
+        response.json(updatedBm)
+      } catch (error) {
+        next(error)
+      }
+  } else {
+    response.status(404).end()
   }
 })
 
-app.use(unknownEndpoint)
-app.use(errorHandler)
+app.use(customMiddleware.unknownEndpoint)
+app.use(customMiddleware.errorHandler)
 
 app.listen(config.PORT, () => {
   logger.info(`Server running on port ${config.PORT}`)
