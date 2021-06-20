@@ -1,8 +1,8 @@
-require('dotenv').config()
+const config = require('../utils/config')
 const logger = require('../utils/logger')
 const mongoose = require('mongoose')
 
-const url = process.env.MONGO_CONNECTION_URL
+const url = config.MONGO_CONNECTION_URL
 
 logger.info('Connecting to', url)
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
