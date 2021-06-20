@@ -39,13 +39,12 @@ app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
 })
 
-app.get('/api/bookmarks', (request, response) => {
-  Bookmark.find({}).then(bookmarks => {
-    response.json(bookmarks)
-  })
+app.get('/api/bookmarks', async (request, response) => {
+  const bookmarks = await Bookmark.find({})
+  response.json(bookmarks)
 })
 
-app.post("/api/bookmarks", (request, response) => {
+app.post("/api/bookmarks", async (request, response) => {
   const body = request.body
   if (!body.name || !body.url || !body.category){
     return response.status(400).json({
@@ -61,36 +60,38 @@ app.post("/api/bookmarks", (request, response) => {
     date: new Date()
   })
 
-  bookmark.save().then(savedBookmark => {
-    response.json(savedBookmark)
-  })
+  const savedBookmark = await bookmark.save()
+  response.json(savedBookmark)
 })
 
-app.get('/api/bookmarks/:id', (request, response, next) => {
-  Bookmark.findById(request.params.id)
-    .then(bookmark => {
-      if (bookmark){
-        response.json(bookmark)
-      } else {
-        response.status(404).end()
-      }
-  })
-  .catch(error => next(error))
+app.get('/api/bookmarks/:id', async (request, response, next) => {
+  try {
+    const bookmark = await Bookmark.findById(request.params.id)
+  } catch (error) {
+    next(error)
+  }
+
+  if (bookmark) {
+    response.json(bookmark)
+  } else {
+    response.status(404).end()
+  }
 })
 
-app.delete('/api/bookmarks/:id', (request, response, next) => {
-  Bookmark.findByIdAndRemove(request.params.id)
-    .then(result => {
-      response.status(204).end()
-    })
-    .catch(error => next(error))
+app.delete('/api/bookmarks/:id', async (request, response, next) => {
+  try {
+    const result = await Bookmark.findByIdAndRemove(request.params.id)
+    response.status(204).end()
+  } catch (error) {
+    next(error)
+  }
 })
 
-app.put('/api/bookmarks/:id', (request, response) => {
+app.put('/api/bookmarks/:id', async (request, response) => {
   const body = request.body
 
   // pull out bookmark from MongoDB
-  const bookmark = Bookmark.findById(request.params.id)
+  const bookmark = await Bookmark.findById(request.params.id)
 
   // update bookmark
   const updatedBookmark = {
@@ -101,11 +102,12 @@ app.put('/api/bookmarks/:id', (request, response) => {
   }
 
   // save and return updates
-  Bookmark.findByIdAndUpdate(request.params.id, updatedBookmark, { new: true })
-    .then(updatedBm => {
-      response.json(updatedBm)
-    })
-    .catch(error => next(error))
+  try {
+    const updatedBm = await Bookmark.findByIdAndUpdate(request.params.id, updatedBookmark, { new: true })
+    response.json(updatedBm)
+  } catch (error) {
+    next(error)
+  }
 })
 
 app.use(unknownEndpoint)
