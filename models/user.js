@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     unique: true
   },
   passwordHash: String,
-  notes: [
+  bookmarks: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bookmark'

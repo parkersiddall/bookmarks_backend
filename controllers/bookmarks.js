@@ -1,5 +1,6 @@
 const bookmarksRouter = require('express').Router()
 const Bookmark = require('../models/bookmark')
+const User = require('../models/user')
 
 // routes
 bookmarksRouter.get('/', async (request, response) => {
@@ -10,17 +11,24 @@ bookmarksRouter.get('/', async (request, response) => {
 bookmarksRouter.post("/", async (request, response, next) => {
   const body = request.body
 
+  const user = await User.findById(body.userId)
+
   const bookmark = new Bookmark({
     name: body.name,
     url: body.url,
     category: body.category,
     notes: body.notes || null,
-    date: new Date()
+    date: new Date(),
+    user: user._id
   })
 
   try {
     const savedBookmark = await bookmark.save()
+    user.bookmarks = user.bookmarks.concat(savedBookmark._id)
+
+    await user.save()
     response.json(savedBookmark)
+
   } catch (error) {
     next(error)
   }
