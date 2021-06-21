@@ -17,6 +17,10 @@ const bookmarkSchema = new mongoose.Schema({
   date: {
     type: Date,
     required: true
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
 })
 
@@ -28,4 +32,6 @@ bookmarkSchema.set('toJSON', {
   }
 })
 
-module.exports = mongoose.model('Bookmark', bookmarkSchema)
+const Bookmark = mongoose.model('Bookmark', bookmarkSchema)
+
+module.exports = Bookmark

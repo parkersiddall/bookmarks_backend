@@ -4,6 +4,7 @@ const config = require('./utils/config')
 const express = require('express')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
+const usersRouter = require('./controllers/users')
 
 // connect to MongoDB
 const url = config.MONGO_CONNECTION_URL
@@ -24,6 +25,7 @@ app.use(express.json())
 app.use(customMiddleware.requestLogger)
 
 app.use('/api/bookmarks', bookmarksRouter)
+app.use('/api/users', usersRouter)
 
 app.use(customMiddleware.unknownEndpoint)
 app.use(customMiddleware.errorHandler)

@@ -20,7 +20,7 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === 'TypeError') {
     return response.status(400).send({ error: 'Expected an object but found null.' })
   } else if (error.name === 'ValidationError') {
-    return (response.status(400).send({error: 'Issues validating data. Mandatory fields are likely missing.'}))
+    return (response.status(400).send({error: error.message}))
   }
 
   next(error)
