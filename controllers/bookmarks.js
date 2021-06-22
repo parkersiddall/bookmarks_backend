@@ -5,6 +5,7 @@ const User = require('../models/user')
 // routes
 bookmarksRouter.get('/', async (request, response) => {
   const bookmarks = await Bookmark.find({})
+    .populate('user', {username: 1, name: 1})
   response.json(bookmarks)
 })
 
@@ -37,6 +38,7 @@ bookmarksRouter.post("/", async (request, response, next) => {
 bookmarksRouter.get('/:id', async (request, response, next) => {
   try {
     const bookmark = await Bookmark.findById(request.params.id)
+      .populate('user', {username: 1, name: 1})
 
     if (bookmark) {
       response.json(bookmark)
@@ -50,6 +52,17 @@ bookmarksRouter.get('/:id', async (request, response, next) => {
 })
 
 bookmarksRouter.delete('/:id', async (request, response, next) => {
+  const id = request.params.id
+
+  const bookmark = await Bookmark.findById(id)
+
+  // this entire block will be simplified once user authentication is implemented
+  if (bookmark) {
+    const user =  await User.findById(bookmark.user)
+    user.bookmarks = user.bookmarks.filter(bm => bm != id)
+    user.save()
+  }
+  
   try {
     const result = await Bookmark.findByIdAndRemove(request.params.id)
     response.status(204).end()
@@ -70,7 +83,8 @@ bookmarksRouter.put('/:id', async (request, response) => {
         name: body.name || bookmark.name,
         url: body.url || bookmark.url,
         category: body.category || bookmark.category,
-        notes: body.notes || bookmark.notes
+        notes: body.notes || bookmark.notes,
+        user: bookmark.user
       }
 
       // save and return updates
