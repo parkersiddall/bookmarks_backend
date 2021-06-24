@@ -4,8 +4,8 @@ const User = require('../models/user')
 
 // routes
 bookmarksRouter.get('/', async (request, response) => {
-  const bookmarks = await Bookmark.find({})
-    .populate('user', {username: 1, name: 1})
+  const bookmarks = await Bookmark.find({user: request.user})
+
   response.json(bookmarks)
 })
 

@@ -25,7 +25,10 @@ const app = express()
 app.use(express.json())
 app.use(customMiddleware.requestLogger)
 
-app.use('/api/bookmarks', bookmarksRouter)
+app.use('/api/bookmarks', 
+  customMiddleware.extractToken,
+  customMiddleware.extractUser,
+  bookmarksRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 
