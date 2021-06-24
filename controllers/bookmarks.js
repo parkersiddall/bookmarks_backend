@@ -12,7 +12,7 @@ bookmarksRouter.get('/', async (request, response) => {
 bookmarksRouter.post("/", async (request, response, next) => {
   const body = request.body
 
-  const user = await User.findById(body.userId)
+  const user = await User.findById(request.user)
 
   const bookmark = new Bookmark({
     name: body.name,
@@ -38,7 +38,10 @@ bookmarksRouter.post("/", async (request, response, next) => {
 bookmarksRouter.get('/:id', async (request, response, next) => {
   try {
     const bookmark = await Bookmark.findById(request.params.id)
-      .populate('user', {username: 1, name: 1})
+
+    if (String(bookmark.user) !== String(request.user._id)) {
+      return response.status(403).end()
+    }
 
     if (bookmark) {
       response.json(bookmark)
@@ -55,6 +58,10 @@ bookmarksRouter.delete('/:id', async (request, response, next) => {
   const id = request.params.id
 
   const bookmark = await Bookmark.findById(id)
+
+  if (String(bookmark.user) !== String(request.user._id)) {
+    return response.status(403).end()
+  }
 
   // this entire block will be simplified once user authentication is implemented
   if (bookmark) {
@@ -73,9 +80,11 @@ bookmarksRouter.delete('/:id', async (request, response, next) => {
 
 bookmarksRouter.put('/:id', async (request, response) => {
   const body = request.body
-
-  // pull out bookmark from MongoDB
   const bookmark = await Bookmark.findById(request.params.id)
+
+  if (String(bookmark.user) !== String(request.user._id)) {
+    return response.status(403).end()
+  }
 
   if (bookmark) {
       // update bookmark
