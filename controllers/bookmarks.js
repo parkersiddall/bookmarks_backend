@@ -1,12 +1,22 @@
 const bookmarksRouter = require('express').Router()
 const Bookmark = require('../models/bookmark')
+const miscFunctions = require('../utils/miscFunctions')
+const redditScraper = require('../utils/redditScraper')
 const User = require('../models/user')
 
 // routes
-bookmarksRouter.get('/', async (request, response) => {
+bookmarksRouter.get('/', async (request, response, next) => {
   try {
+    // get bookmarks for user
     const bookmarks = await Bookmark.find({user: request.user})
-    response.json(bookmarks)
+
+    // get reddit posts
+    const redditPosts = await redditScraper.scrapeReddit('cityporn', bookmarks.length)
+
+    // integrate reddit posts into bookmarks
+    const bookmarksWithPosts = await miscFunctions.assignRedditPhoto(bookmarks, redditPosts)
+    response.json(bookmarksWithPosts)
+
   } catch (error) {
     next(error)
   }
