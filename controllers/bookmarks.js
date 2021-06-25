@@ -4,30 +4,35 @@ const User = require('../models/user')
 
 // routes
 bookmarksRouter.get('/', async (request, response) => {
-  const bookmarks = await Bookmark.find({user: request.user})
-
-  response.json(bookmarks)
+  try {
+    const bookmarks = await Bookmark.find({user: request.user})
+    response.json(bookmarks)
+  } catch (error) {
+    next(error)
+  }
 })
 
 bookmarksRouter.post("/", async (request, response, next) => {
-  const body = request.body
-
-  const user = await User.findById(request.user)
-
-  const bookmark = new Bookmark({
-    name: body.name,
-    url: body.url,
-    category: body.category,
-    notes: body.notes || null,
-    date: new Date(),
-    user: user._id
-  })
-
   try {
-    const savedBookmark = await bookmark.save()
-    user.bookmarks = user.bookmarks.concat(savedBookmark._id)
+    const body = request.body
+    const user = await User.findById(request.user)
 
+    const bookmark = new Bookmark({
+      name: body.name,
+      url: body.url,
+      category: body.category,
+      notes: body.notes || null,
+      date: new Date(),
+      user: user._id
+    })
+
+    // save new bookmark
+    const savedBookmark = await bookmark.save()
+
+    // add the bookmark to the users list
+    user.bookmarks = user.bookmarks.concat(savedBookmark._id)
     await user.save()
+
     response.json(savedBookmark)
 
   } catch (error) {
@@ -39,15 +44,14 @@ bookmarksRouter.get('/:id', async (request, response, next) => {
   try {
     const bookmark = await Bookmark.findById(request.params.id)
 
-    if (String(bookmark.user) !== String(request.user._id)) {
+    // check that id is valid and user is bookmark's owner
+    if (!bookmark) {
+      response.status(404).end()
+    } else if (String(bookmark.user) !== String(request.user._id)) {
       return response.status(403).end()
     }
-
-    if (bookmark) {
-      response.json(bookmark)
-    } else {
-      response.status(404).end()
-    }
+  
+    response.json(bookmark)
 
   } catch (error) {
     next(error)
@@ -55,56 +59,58 @@ bookmarksRouter.get('/:id', async (request, response, next) => {
 })
 
 bookmarksRouter.delete('/:id', async (request, response, next) => {
-  const id = request.params.id
+  try{
+    const id = request.params.id
+    bookmark = await Bookmark.findById(request.params.id)
+  
+    // check that id is valid and user is bookmark's owner
+    if (!bookmark) {
+      response.status(404).end()
+    } else if (String(bookmark.user) !== String(request.user._id)) {
+      return response.status(403).end()
+    }
 
-  const bookmark = await Bookmark.findById(id)
-
-  if (String(bookmark.user) !== String(request.user._id)) {
-    return response.status(403).end()
-  }
-
-  // this entire block will be simplified once user authentication is implemented
-  if (bookmark) {
-    const user =  await User.findById(bookmark.user)
+    // remove the bookmark from the users bookmarks list
+    const user =  await User.findById(request.user)
     user.bookmarks = user.bookmarks.filter(bm => bm != id)
     user.save()
-  }
-  
-  try {
+
+    // delete the bookmark
     const result = await Bookmark.findByIdAndRemove(request.params.id)
     response.status(204).end()
+
   } catch (error) {
     next(error)
   }
 })
 
-bookmarksRouter.put('/:id', async (request, response) => {
-  const body = request.body
-  const bookmark = await Bookmark.findById(request.params.id)
+bookmarksRouter.put('/:id', async (request, response, next) => {
+  try {
+    const body = request.body
+    const bookmark = await Bookmark.findById(request.params.id)
+  
+    // check that id is valid and user is bookmark's owner
+    if (!bookmark) {
+      response.status(404).end()
+    } else if (String(bookmark.user) !== String(request.user._id)) {
+      return response.status(403).end()
+    }
 
-  if (String(bookmark.user) !== String(request.user._id)) {
-    return response.status(403).end()
-  }
+    // update the bookmark
+    const updatedBookmark = {
+      name: body.name || bookmark.name,
+      url: body.url || bookmark.url,
+      category: body.category || bookmark.category,
+      notes: body.notes || bookmark.notes,
+      user: bookmark.user
+    }
 
-  if (bookmark) {
-      // update bookmark
-      const updatedBookmark = {
-        name: body.name || bookmark.name,
-        url: body.url || bookmark.url,
-        category: body.category || bookmark.category,
-        notes: body.notes || bookmark.notes,
-        user: bookmark.user
-      }
+    // save the bookmark and return it to user
+    const updatedBm = await Bookmark.findByIdAndUpdate(request.params.id, updatedBookmark, { new: true })
+    response.json(updatedBm)
 
-      // save and return updates
-      try {
-        const updatedBm = await Bookmark.findByIdAndUpdate(request.params.id, updatedBookmark, { new: true })
-        response.json(updatedBm)
-      } catch (error) {
-        next(error)
-      }
-  } else {
-    response.status(404).end()
+  } catch (error) {
+    next(error)
   }
 })
 
