@@ -1,6 +1,7 @@
 const bookmarksRouter = require('./controllers/bookmarks')
 const customMiddleware = require('./utils/customMiddleware')
 const config = require('./utils/config')
+const cors = require('cors')
 const express = require('express')
 const loginRouter = require('./controllers/login')
 const logger = require('./utils/logger')
@@ -20,6 +21,7 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFind
 
 // build app
 const app = express()
+app.use(cors())
 
 // middleware & routes
 app.use(express.json())
