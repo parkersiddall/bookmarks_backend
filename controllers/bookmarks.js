@@ -107,6 +107,12 @@ bookmarksRouter.put('/:id', async (request, response, next) => {
       return response.status(403).end()
     }
 
+    // TODO: sort out confusion with updating boolean value
+    let isFavValue = bookmark.isFavorite
+    if (typeof body.isFavorite !== 'undefined') {
+      isFavValue = body.isFavorite
+    } 
+
     // update the bookmark
     const updatedBookmark = {
       name: body.name || bookmark.name,
@@ -114,7 +120,7 @@ bookmarksRouter.put('/:id', async (request, response, next) => {
       category: body.category || bookmark.category,
       notes: body.notes || bookmark.notes,
       user: bookmark.user, 
-      isFavorite: body.isFavorite || bookmark.isFavorite || false
+      isFavorite: isFavValue
     }
 
     // save the bookmark and return it to user
