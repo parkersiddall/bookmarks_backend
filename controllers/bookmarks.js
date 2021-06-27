@@ -33,7 +33,8 @@ bookmarksRouter.post("/", async (request, response, next) => {
       category: body.category,
       notes: body.notes || null,
       date: new Date(),
-      user: user._id
+      user: user._id,
+      isFavorite: body.isFavorite || false
     })
 
     // save new bookmark
@@ -112,7 +113,8 @@ bookmarksRouter.put('/:id', async (request, response, next) => {
       url: body.url || bookmark.url,
       category: body.category || bookmark.category,
       notes: body.notes || bookmark.notes,
-      user: bookmark.user
+      user: bookmark.user, 
+      isFavorite: body.isFavorite || bookmark.isFavorite || false
     }
 
     // save the bookmark and return it to user

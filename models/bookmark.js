@@ -18,6 +18,7 @@ const bookmarkSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  isFavorite: Boolean,
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
