@@ -46,11 +46,8 @@ bookmarksRouter.post("/", async (request, response, next) => {
 
     // get a new reddit post, combine it with the bookmark
     const MongoToJson = savedBookmark.toJSON()
-
-    // TODO: write function to get new reddit post
     const redditPost = await redditScraper.getPostForNewBookmark('cityporn', user.bookmarks.length)
 
-    
     bookmarkWithRedditPost = {
       ...MongoToJson,
       redditPost: redditPost
