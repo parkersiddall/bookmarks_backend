@@ -22,10 +22,9 @@ usersRouter.post('/', async (request, response, next) => {
   }
 })
 
-// TODO: remove when app in completed
-usersRouter.get('/', async (request, response) => {
-  const users = await User.find({}).populate('bookmarks')
-  response.json(users)
+usersRouter.get('/me', customMiddleware.extractToken, customMiddleware.extractUser, async (request, response) => {
+  const user = await User.findById(request.user)
+  response.json(user)
 })
 
 usersRouter.put('/settings', customMiddleware.extractToken, customMiddleware.extractUser, async (request, response) => {
