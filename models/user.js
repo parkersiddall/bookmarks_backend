@@ -13,6 +13,16 @@ const userSchema = new mongoose.Schema({
       ref: 'Bookmark'
     }
   ],
+  savedPhotos: Array,
+  subreddit: {
+    type: String,
+    default: 'earthporn'
+  },
+  prefersDark: {
+    type: Boolean,
+    default: false
+  },
+  
 })
 
 userSchema.plugin(uniqueValidator)

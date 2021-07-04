@@ -14,18 +14,18 @@ const scrapeReddit = async (subreddit, limit) => {
   
   currentPost = post.data.name
   totalCalls++
-  
+
   if (post.data.post_hint === 'image') {
     savedPost = {
       title: post.data.title,
       url: post.data.url
     }
+
     
     successful.push(savedPost)
   }
   
   while (successful.length < limit) {
-    console.log(currentPost)
     const response = await axios.get(`https://www.reddit.com/r/${subreddit}/new.json?limit=${1}&after=${currentPost}`)
     totalCalls++
     

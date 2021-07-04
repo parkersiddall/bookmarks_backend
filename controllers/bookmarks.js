@@ -6,12 +6,15 @@ const User = require('../models/user')
 
 // routes
 bookmarksRouter.get('/', async (request, response, next) => {
+
+  const user =  await User.findById(request.user)
+
   try {
     // get bookmarks for user
     const bookmarks = await Bookmark.find({user: request.user})
 
     // get reddit posts
-    const redditPosts = await redditScraper.scrapeReddit('cityporn', bookmarks.length)
+    const redditPosts = await redditScraper.scrapeReddit(user.subreddit, bookmarks.length)
 
     // integrate reddit posts into bookmarks
     const bookmarksWithPosts = await miscFunctions.assignRedditPhoto(bookmarks, redditPosts)
@@ -46,7 +49,7 @@ bookmarksRouter.post("/", async (request, response, next) => {
 
     // get a new reddit post, combine it with the bookmark
     const MongoToJson = savedBookmark.toJSON()
-    const redditPost = await redditScraper.getPostForNewBookmark('cityporn', user.bookmarks.length)
+    const redditPost = await redditScraper.getPostForNewBookmark(user.subreddit, user.bookmarks.length)
 
     bookmarkWithRedditPost = {
       ...MongoToJson,

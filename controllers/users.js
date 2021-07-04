@@ -1,3 +1,4 @@
+const customMiddleware = require('../utils/customMiddleware')
 const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
@@ -21,6 +22,7 @@ usersRouter.post('/', async (request, response, next) => {
   }
 })
 
+// TODO: remove when app in completed
 usersRouter.get('/', async (request, response) => {
   const users = await User.find({}).populate('bookmarks')
   response.json(users)
