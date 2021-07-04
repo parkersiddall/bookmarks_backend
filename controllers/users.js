@@ -28,4 +28,23 @@ usersRouter.get('/', async (request, response) => {
   response.json(users)
 })
 
+usersRouter.put('/settings', customMiddleware.extractToken, customMiddleware.extractUser, async (request, response) => {
+
+  const body = request.body
+  const user = await User.findById(request.user)
+
+    // update the bookmark
+    const updatedSettings = {
+      prefersDark: body.prefersDark || user.prefersDark,
+      subreddit: body.subreddit || user.subreddit
+    }
+
+    // save the bookmark and return it to user
+    const updatedUser = await User.findByIdAndUpdate(user._id, updatedSettings, { new: true })
+    response.json(updatedUser)
+
+})
+
+
+
 module.exports = usersRouter
