@@ -32,17 +32,54 @@ usersRouter.put('/settings', customMiddleware.extractToken, customMiddleware.ext
   const body = request.body
   const user = await User.findById(request.user)
 
-    // update the bookmark
-    const updatedSettings = {
-      prefersDark: body.prefersDark || user.prefersDark,
-      subreddit: body.subreddit || user.subreddit
+  // TODO: sort out confusion with updating boolean value
+  let prefersDark = user.prefersDark
+  if (typeof body.prefersDark !== 'undefined') {
+    prefersDark = body.prefersDark
+  } 
+
+  // update the bookmark
+  const updatedSettings = {
+    prefersDark: prefersDark,
+    subreddit: body.subreddit || user.subreddit
+  }
+
+  // save the bookmark and return it to user
+  const updatedUser = await User.findByIdAndUpdate(user._id, updatedSettings, { new: true })
+  response.json(updatedUser)
+})
+
+usersRouter.put('/savedPhotos', customMiddleware.extractToken, customMiddleware.extractUser, async (request, response) => {
+  const body = request.body
+  const user = await User.findById(request.user)
+
+  const alreadySaved = user.savedPhotos.filter(x => x.url === body.url)
+
+  let savedPhotos
+  if (alreadySaved.length !== 0) {
+    // remove photo from list
+    savedPhotos = user.savedPhotos.filter(x => x.url !== body.url)// with the post filtered out
+  } else {
+    // save the photo
+    newSavedPhoto = {
+      url: body.url,
+      name: body.name
     }
 
-    // save the bookmark and return it to user
-    const updatedUser = await User.findByIdAndUpdate(user._id, updatedSettings, { new: true })
-    response.json(updatedUser)
+    savedPhotos = user.savedPhotos.concat(newSavedPhoto)
+  }
 
+  // update the bookmark
+  const updatedSavedPhotos = {
+    savedPhotos: savedPhotos
+  }
+
+  // save the bookmark and return it to user
+  const updatedUser = await User.findByIdAndUpdate(user._id, updatedSavedPhotos, { new: true })
+  response.json(updatedUser)
 })
+
+
 
 
 
