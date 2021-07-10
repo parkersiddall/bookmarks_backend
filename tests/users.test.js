@@ -83,6 +83,64 @@ describe('Logging users in', () => {
   })
 })
 
+describe('Changing user settings', () => {
+  test('Modify a single setting', async () => {
+    // create user
+    const response = await api
+      .post('/api/users')
+      .send(helper.testUser)
+
+    // get token
+    const loginResponse = await api
+      .post('/api/login')
+      .send(helper.testUser)
+
+    const token = loginResponse.body.token
+
+    // change setting
+    const newSettings = {
+      prefersDark: true
+    }
+
+    // update via API
+    const newResponse = await api
+      .put('/api/users/settings')
+      .send(newSettings)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(newResponse.body.prefersDark === true)
+  })
+
+  test('Modify multiple setting', async () => {
+    // create user
+    const response = await api
+      .post('/api/users')
+      .send(helper.testUser)
+
+    // get token
+    const loginResponse = await api
+      .post('/api/login')
+      .send(helper.testUser)
+
+    const token = loginResponse.body.token
+
+    // change setting
+    const newSettings = {
+      prefersDark: true,
+      subreddit: 'cityporn'
+    }
+
+    // update via API
+    const newResponse = await api
+      .put('/api/users/settings')
+      .send(newSettings)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(newResponse.body.prefersDark === true)
+    expect(newResponse.body.prefersDark === 'cityporn')
+  })
+})
+
 // close DB connection
 afterAll(() => {
   mongoose.connection.close()
