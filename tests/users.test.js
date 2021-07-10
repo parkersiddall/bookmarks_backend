@@ -141,6 +141,62 @@ describe('Changing user settings', () => {
   })
 })
 
+describe('Saving photos', () => {
+  test('Photos get saved correctly', async () => {
+    // create user
+    const response = await api
+      .post('/api/users')
+      .send(helper.testUser)
+
+    // get token
+    const loginResponse = await api
+      .post('/api/login')
+      .send(helper.testUser)
+
+    const token = loginResponse.body.token
+
+    // save photo via API
+    const newResponse = await api
+      .put('/api/users/savedPhotos')
+      .send(helper.testSavedPhoto)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(newResponse.body.savedPhotos.length === 1)
+    expect(newResponse.body.savedPhotos[0].title === helper.testSavedPhoto.title)
+  })
+
+  test('Photos can be unsaved via the same API', async () => {
+    // create user
+    const response = await api
+      .post('/api/users')
+      .send(helper.testUser)
+ 
+    // get token
+    const loginResponse = await api
+      .post('/api/login')
+      .send(helper.testUser)
+
+    const token = loginResponse.body.token
+
+    // save photo via API
+    const savedPhotoResponse = await api
+      .put('/api/users/savedPhotos')
+      .send(helper.testSavedPhoto)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(savedPhotoResponse.body.savedPhotos.length === 1)
+
+    // unsave the photo via the same api
+    const unsavedPhotoResponse = await api
+      .put('/api/users/savedPhotos')
+      .send(helper.testSavedPhoto)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(unsavedPhotoResponse.body.savedPhotos.length === 0)
+
+  })
+})
+
 // close DB connection
 afterAll(() => {
   mongoose.connection.close()

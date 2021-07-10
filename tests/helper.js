@@ -6,6 +6,12 @@ const testUser = {
   password: "independence_1776"
 }
 
+const testSavedPhoto = {
+  url: "http://www.google.com",
+  title: 'Test Save Photo'
+}
+
 module.exports = {
-  testUser
+  testUser,
+  testSavedPhoto
 }
