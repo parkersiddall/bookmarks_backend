@@ -48,6 +48,41 @@ describe('Creating an account', () => {
   })
 })
 
+describe('Logging users in', () => {
+  test('Login returns 200', async () => {
+    // create new user
+    const response = await api
+      .post('/api/users')
+      .send(helper.testUser)
+  
+    expect(response.status === 200)
+
+    // log user in
+    const loginResponse = await api
+      .post('/api/login')
+      .send(helper.testUser)
+
+    expect(loginResponse.status === 200)
+  })
+
+  test('Login returns token and username', async () => {
+    // create new user
+    const response = await api
+      .post('/api/users')
+      .send(helper.testUser)
+  
+    expect(response.status === 200)
+
+    // log user in
+    const loginResponse = await api
+      .post('/api/login')
+      .send(helper.testUser)
+
+    expect(loginResponse.body.username === helper.testUser.username)
+    expect(loginResponse.body.token)
+  })
+})
+
 // close DB connection
 afterAll(() => {
   mongoose.connection.close()
