@@ -1,11 +1,17 @@
 require('dotenv').config()
 
+const NODE_ENV = process.env.NODE_ENV
 const PORT = process.env.PORT
 const MONGO_CONNECTION_URL = process.env.MONGO_CONNECTION_URL
+const DEV_MONGO_CONNECTION_URL = process.env.DEV_MONGO_CONNECTION_URL
+const TEST_MONGO_CONNECTION_URL = process.env.TEST_MONGO_CONNECTION_URL
 const JWT_SECRET = process.env.JWT_SECRET
 
 module.exports = {
+  NODE_ENV,
   MONGO_CONNECTION_URL,
+  DEV_MONGO_CONNECTION_URL,
+  TEST_MONGO_CONNECTION_URL,
   PORT,
   JWT_SECRET
 }

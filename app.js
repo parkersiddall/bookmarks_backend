@@ -9,8 +9,21 @@ const mongoose = require('mongoose')
 const usersRouter = require('./controllers/users')
 
 // connect to MongoDB
-const url = config.MONGO_CONNECTION_URL
-logger.info('Connecting to', url)
+let url = ''
+switch (config.NODE_ENV) {
+  case 'production':
+    url =  config.MONGO_CONNECTION_URL
+    break
+  case 'development':
+    url =  config.DEV_MONGO_CONNECTION_URL
+    break
+  case 'test':
+    console.log('?')
+    url =  config.TEST_MONGO_CONNECTION_URL
+    break
+}
+
+logger.info(`Connecting to ${config.NODE_ENV} database:`, url)
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
   .then(result => {
     logger.info('Connected to MongoDB!')
