@@ -40,6 +40,11 @@ app.use(cors())
 app.use(express.json())
 app.use(customMiddleware.requestLogger)
 
+// endpoints to reset DB if running frontend tests
+if (process.env.NODE_ENV === 'test') {
+  const testingRouter = require('./controllers/forTesting')
+  app.use('/api/testing', testingRouter)
+}
 app.use('/api/bookmarks', 
   customMiddleware.extractToken,
   customMiddleware.extractUser,
