@@ -4,7 +4,7 @@
   "description": "Backend for a simple bookmarks app",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node index.js",
+    "start": "NODE_ENV=production node index.js",
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "debug-in-browser": "node --inspect index.js",
     "test": "cross-env NODE_ENV=test jest --verbose",

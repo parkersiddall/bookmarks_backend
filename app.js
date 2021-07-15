@@ -35,6 +35,7 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFind
 // build app
 const app = express()
 app.use(cors())
+app.use(express.static('build'))
 
 // middleware & routes
 app.use(express.json())
