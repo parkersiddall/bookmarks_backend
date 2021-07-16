@@ -1,7 +1,7 @@
 # Bookmarks
 With pretty pictures from your favorite subreddit.
 
-(insert screenshots)
+![Screenshot](https://github.com/parkersiddall/bookmarks_backend/blob/master/screenshots/bookmarks_screenshot_2.png?raw=true)
 
 ## Description
 A bookmarks app that displays recently added images from the subreddit of your choosing. When you see a photo that you like that can store it in your collection of saved photos. 
