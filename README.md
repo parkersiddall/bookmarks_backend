@@ -21,7 +21,7 @@ A bookmarks app that displays recently added images from the subreddit of your c
 - Light and dark themes
 
 ## Technology used
-MongoDB, Express.js, React with Material UI.
+MongoDB, Express.js, React with Material UI, Docker
 
 ## Related repositories
 - [Frontend](https://github.com/parkersiddall/bookmarks_frontend)
@@ -45,9 +45,19 @@ I only use two Mongo schemas for this project:
 The project uses Jest in order to run integration tests and check the API endpoints as well as the DB connection.
 
 # Run locally
+In order to run the app locally you need to configure a .env file. Check the sample file to know how to name your variables. I Used MongoDB Atlas, which is easy to set up and get credentials.
+
+## Scripts
 Before running any scripts you'll have to run `npm install`
 
 - `npm start`: Start the app in production
 - `npm run dev`: Start the development server
 - `npm run text`: Runs all the integration test files in the directory
 - `npm run start:test`: Used to start the test server for E2E testing via Cypress (see frontend repo)
+
+# Run in a container
+Using Docker you can run the app in a container. First adjust the EXPOSE port and CMD based on what environment you are running in (the app defaults to port 3001 if nothing else is specified). 
+
+Navigate into the directory then run the following:
+- `docker build . -t bookmarks_backend`
+- `docker run -d -p 3001:3001 bookmarks_backend`
