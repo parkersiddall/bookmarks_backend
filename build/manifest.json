@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Bookmarks",
+  "name": "Boomarks gallery that displays pretty pictures from your favorite subreddits",
   "icons": [
     {
       "src": "favicon.ico",
